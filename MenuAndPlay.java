@@ -2,8 +2,6 @@ import processing.core.PApplet;
 import processing.core.PVector;
 
 import java.io.IOException;
-import java.util.List;
-import java.util.Set;
 
 
 public class MenuAndPlay extends PApplet implements Runnable{ //implementar runnable
@@ -16,28 +14,34 @@ public class MenuAndPlay extends PApplet implements Runnable{ //implementar runn
     }
 
     private State currState = State.Menu;
+
     private int opHeight = 720;
     private int opWidth = 1280;
+
     String username = "";
     String password = "";
+    boolean loggedIn = false;
+
     Button playButao = new Button(opWidth/2, opHeight/3+opHeight/11, 300, 100, "PLAY");
     Button exitButao = new Button(opWidth/2, opHeight/2+opHeight/11, 300, 100, "EXIT");
-    Button loginButton = new Button(opWidth/1-opWidth/8, opHeight/16+opHeight/11, 200, 80, "Login");
-    Button backButton = new Button(opWidth/1-opWidth/8, opHeight/16+opHeight/11, 200, 80, "Return");
-    Button enterLogin = new Button(opWidth/2, opHeight/1-opHeight/6, 200, 80, "Login");
+    Button loginButton = new Button(opWidth-opWidth/8, opHeight/16+opHeight/11, 200, 80, "Login");
 
+    Button backButton = new Button(opWidth/8, opHeight/16+opHeight/11, 200, 80, "Return");
+    Button registerButton = new Button(opWidth-opWidth/8, opHeight/16+opHeight/11, 200, 80, "Register");
+    Button enterLogin = new Button(opWidth/2, opHeight-opHeight/6, 200, 80, "Login");
     Button loginUserBox = new Button(opWidth/2, opHeight/3+opHeight/11, 300, 100, "Insira Username");
     Button loginPassBox = new Button(opWidth/2, opHeight/2+opHeight/11, 300, 100, "Insira Password");
 
-    PVector pos = new PVector(width / 2, height / 2);
+    Button enterRegister = new Button(opWidth/2, opHeight-opHeight/6, 200, 80, "Register");
 
-    private int raioJogador = 20;
-    Jogador jogador = new Jogador(pos);
+    Jogador jogador = new Jogador(width/2, height/2);
+
+    Planeta planeta = new Planeta(20, width/2, height/2, 1f, 1f, opHeight, opWidth);
 
     ConnectionManager connectionManager;
 
-    public MenuAndPlay(/*ConnectionManager connectionManager*/){
-        //this.connectionManager = connectionManager;
+    public MenuAndPlay(ConnectionManager connectionManager){
+        this.connectionManager = connectionManager;
     }
 
     public void settings(){
@@ -47,16 +51,16 @@ public class MenuAndPlay extends PApplet implements Runnable{ //implementar runn
     public void draw(){
         switch (currState) {
             case Menu:
-                menuInicial();
+                drawMenuInicial();
                 break;
             case Play:
-                play();
+                drawPlay();
                 break;
             case Login:
-                login();
+                drawLogin();
                 break;
             case Register:
-                register();
+                drawRegister();
                 break;
             default:
                 break;
@@ -66,46 +70,128 @@ public class MenuAndPlay extends PApplet implements Runnable{ //implementar runn
     public void mousePressed(){
         switch (currState) {
             case Menu:
-                if(loginButton.isOver()){
+                if(loginButton.isOver(mouseX, mouseY)){
                     currState = State.Login;
-                } else if(exitButao.isOver()){
+                } else if(exitButao.isOver(mouseX, mouseY)){
                     exit();
-                } else if(playButao.isOver()){
+                } else if(playButao.isOver(mouseX, mouseY)){
                     currState = State.Play;
                 }
                 break;
             case Login:
-                if(backButton.isOver()){
+                if(backButton.isOver(mouseX, mouseY)){
                     loginUserBox.text = "";
                     loginPassBox.text = "";
                     currState = State.Menu;
                 }
-                if(loginUserBox.isOver()){
+                if(registerButton.isOver(mouseX, mouseY)){
+                    loginUserBox.text = "";
+                    loginPassBox.text = "";
+                    currState = State.Register;
+                }
+                if(loginUserBox.isOver(mouseX, mouseY)){
                     loginUserBox.focus();
                     loginUserBox.text = "";
                     username = "";
                 }
-                if(loginPassBox.isOver()){
+                if(loginPassBox.isOver(mouseX, mouseY)){
                     loginPassBox.focus();
                     loginPassBox.text = "";
                     password = "";
                 }
-                if(!loginUserBox.isOver()){
+                if(!loginUserBox.isOver(mouseX, mouseY)){
                     loginUserBox.unfocus();
                     if (loginUserBox.text == ""){
                         loginUserBox.text = "Insira Username";
                     }
                     loginUserBox.showText();
                 }
-                if(!loginPassBox.isOver()){
+                if(!loginPassBox.isOver(mouseX, mouseY)){
                     loginPassBox.unfocus();
                     if (loginPassBox.text == ""){
                         loginPassBox.text = "Insira Password";
                     }
                     loginPassBox.showText();
                 }
-                if(enterLogin.isOver()){
+                if(enterLogin.isOver(mouseX, mouseY)){
                     println("username: "+ "\""+username+"\"" + " password: "+ "\"" +password+"\"");
+                    String response = sendMSG("login/"+username+"/"+password);
+
+                    if(response.equals("ok")){
+                        println("recebi ok");
+                        currState = State.Menu;
+                    } else println(response + " dumbass");
+                }
+                break;
+            case Play:
+                break;
+            case Register:
+                if(backButton.isOver(mouseX, mouseY)){
+                    loginUserBox.text = "";
+                    loginPassBox.text = "";
+                    currState = State.Login;
+                }
+                if(loginUserBox.isOver(mouseX, mouseY)){
+                    loginUserBox.focus();
+                    loginUserBox.text = "";
+                    username = "";
+                }
+                if(loginPassBox.isOver(mouseX, mouseY)){
+                    loginPassBox.focus();
+                    loginPassBox.text = "";
+                    password = "";
+                }
+                if(!loginUserBox.isOver(mouseX, mouseY)){
+                    loginUserBox.unfocus();
+                    if (loginUserBox.text == ""){
+                        loginUserBox.text = "Insira Username";
+                    }
+                    loginUserBox.showText();
+                }
+                if(!loginPassBox.isOver(mouseX, mouseY)){
+                    loginPassBox.unfocus();
+                    if (loginPassBox.text == ""){
+                        loginPassBox.text = "Insira Password";
+                    }
+                    loginPassBox.showText();
+                }
+                if(enterRegister.isOver(mouseX, mouseY)){
+                    println("username: "+ "\""+username+"\"" + " password: "+ "\"" +password+"\"");
+                    String response = sendMSG("criarConta/"+username+"/"+password);
+
+                    if(response.equals("ok")){
+                        println("recebi ok");
+                        currState = State.Menu;
+                    } else println(response + " dumbass");
+                }
+                break;
+            default:
+                break;
+        }
+	}
+
+    public void keyPressed(){
+        if(loginUserBox.getfocus()){
+            if(key == BACKSPACE && loginUserBox.text != ""){
+                loginUserBox.text=loginUserBox.text.substring(0, loginUserBox.text.length()-1);
+                username = username.substring(0, username.length()-1);
+            }else if (key != BACKSPACE){
+                loginUserBox.text += key;
+                username += key;
+            }
+        }
+        else if(loginPassBox.getfocus()){
+            if (key == BACKSPACE && loginPassBox.text != ""){
+                loginPassBox.text=loginPassBox.text.substring(0, loginPassBox.text.length()-1);
+                password = password.substring(0, password.length()-1);
+            } else if (key != BACKSPACE){
+                password += key;
+                loginPassBox.text += '*';
+            }
+        }
+        switch (currState) {
+            case Login:
+                if(key == ENTER){
                     /*String response = loginInfo("login#"+username+"#"+password);
                     if(response == "Ok"){
                         println("recebi ok");
@@ -115,69 +201,33 @@ public class MenuAndPlay extends PApplet implements Runnable{ //implementar runn
                         println(response + " dumbass");
                         exit();
                     }*/
-
                 }
-                break;
-            case Play:
-                play();
                 break;
             case Register:
-                register();
-                break;
-            default:
-                break;
-        }
-	}
-
-    public void keyPressed(){
-        switch (currState) {
-            case Login:
-                if(loginUserBox.getfocus()){
-                    if(key == BACKSPACE && loginUserBox.text != ""){
-                        loginUserBox.text=loginUserBox.text.substring(0, loginUserBox.text.length()-1);
-                        username = username.substring(0, username.length()-1);
-                    }else if (key != BACKSPACE){
-                        loginUserBox.text += key;
-                        username += key;
-                    }
-                }
-                else if(loginPassBox.getfocus()){
-                    if (key == BACKSPACE && loginPassBox.text != ""){
-                        loginPassBox.text=loginPassBox.text.substring(0, loginPassBox.text.length()-1);
-                        password = password.substring(0, password.length()-1);
-                    } else if (key != BACKSPACE){
-                        password += key;
-                        loginPassBox.text += '*';
-                    }
-                }
                 if(key == ENTER){
-                    println("username: "+ "\""+username+"\"" + " password: "+ "\"" +password+"\"");
-                        /*String response = loginInfo("login#"+username+"#"+password);
-                        if(response == "Ok"){
-                            println("recebi ok");
-                            //currState = State.Menu;
-                            println(response);
-                        } else {
-                            println(response + " dumbass");
-                            exit();
-                        }*/
+                    /*String response = loginInfo("login#"+username+"#"+password);
+                    if(response == "Ok"){
+                        println("recebi ok");
+                        //currState = State.Menu;
+                        println(response);
+                    } else {
+                        println(response + " dumbass");
+                        exit();
+                    }*/
                 }
                 break;
-                
             case Play:
                 if (key == CODED) {
                     if (keyCode == LEFT) {
-                        //angulo -= 0.05;
                         jogador.pressDirecoes("left");
-                        println(jogador.getPos());
                     } else if (keyCode == RIGHT) {
-                        //angulo += 0.05;
                         jogador.pressDirecoes("right");
                     } else if (keyCode == UP) {
                         jogador.pressDirecoes("up");
-                        println(jogador.getPos());
+                        println(jogador.getPos());                  //debug posição
                     }
                 }
+                break;
             default:
                 break;
         }
@@ -196,50 +246,49 @@ public class MenuAndPlay extends PApplet implements Runnable{ //implementar runn
                     }
                 }
                 break;
-        
             default:
                 break;
         }
     }
 
-    private void menuInicial(){
+    private void drawMenuInicial(){
         background(255);
-        playButao.display();
-        exitButao.display();
-        loginButton.display();
-        exitButao.isOver();
-        playButao.isOver();
-        loginButton.isOver();
+        displayButton(playButao);
+        displayButton(exitButao);
+        displayButton(loginButton);
     }
 
-    private void register(){
-        playButao.display();
-        exitButao.display();
-        exitButao.isOver();
-        playButao.isOver();
+    private void drawRegister(){
+        background(120);
+        displayButton(loginUserBox);
+        displayButton(loginPassBox);
+        displayButton(backButton);
+        displayButton(enterRegister);
+        displayButton(registerButton);
     }
 
-    private void login(){
-        background(80);
-        loginUserBox.display();
-        loginPassBox.display();
-        backButton.display();
-        enterLogin.display();
-        loginUserBox.isOver();
-        loginPassBox.isOver();
-        backButton.isOver();
-        enterLogin.isOver();
+    private void drawLogin(){
+        background(120);
+        displayButton(loginUserBox);
+        displayButton(loginPassBox);
+        displayButton(backButton);
+        displayButton(enterLogin);
+        displayButton(registerButton);
     }
 
-    private void play(){
+    private void drawPlay(){
         background(60);
         displayJogador(jogador);
+        displayPlanetas(planeta);
     }
 
-    private String loginInfo(String userInfo){
+    private String sendMSG(String msg){
         try {
-            connectionManager.send(userInfo);
+            println("sending " +msg);
+            connectionManager.send(msg);
+            println("sent, now receiving");
             String response = connectionManager.receive();
+            println("received " + response +", returning");
             return response;
             
         } catch (IOException e) {
@@ -247,71 +296,23 @@ public class MenuAndPlay extends PApplet implements Runnable{ //implementar runn
         }
     }
 
-    class Button{
-        private int x;
-        private int y;
-        private int sizeX;
-        private int sizeY;
-        private int color = 60;
-        private boolean textShowing = true;
-        private boolean focus = false;
-        public String text;
+    public void displayButton(Button button){
+        int[] posAndSize = button.getPosAndSize();
+        int color = button.isOver(mouseX, mouseY) ? 30: button.getColor();
+        fill(color);
+        rectMode(CENTER);
+        rect(posAndSize[0], posAndSize[1], posAndSize[2], posAndSize[3]);
 
-        public Button(int x, int y, int sizeX, int sizeY, String text){
-            this.x = x;
-            this.y = y;
-            this.sizeX = sizeX;
-            this.sizeY = sizeY;
-            this.text = text;
-            this.color = 60;
-        }
-
-        public Boolean isOver(){
-            if (mouseX >= this.x-(this.sizeX/2) && mouseX <= this.x+(this.sizeX/2) &&
-                 mouseY >= this.y-(this.sizeY/2) && mouseY <= this.y+(this.sizeY/2)) {
-                this.color = 0;
-                return true;
-            } else {
-                this.color = 60;
-                return false;
-            }
-        }
-
-        public void display(){
-            fill(this.color);
-            rectMode(CENTER);
-            rect(this.x, this.y, this.sizeX, this.sizeY);
-
-            if (this.textShowing){
-                fill(255);
-                textSize(32);
-                textAlign(CENTER, CENTER);
-                text(this.text, this.x, this.y);
-            }
-        }
-
-        public void showText(){
-            this.textShowing = true;
-        }
-
-        public void hideText(){
-            this.textShowing = false;
-        }
-
-        public boolean getfocus(){
-            return this.focus;
-        }
-
-        public void focus(){
-            this.focus = true;
-        }
-
-        public void unfocus(){
-            this.focus = false;
+        if (button.getTextShowing()){
+            fill(255);
+            textSize(32);
+            textAlign(CENTER, CENTER);
+            text(button.text, posAndSize[0], posAndSize[1]);
         }
     }
 
     public void displayJogador(Jogador jogador){
+        int raioJogador = 20;
         float combustivel = jogador.getCombustivel();
         float angulo = jogador.getAngulo();
         PVector pos = jogador.getPos();
@@ -335,9 +336,23 @@ public class MenuAndPlay extends PApplet implements Runnable{ //implementar runn
         jogador.movePlayer();
     }
 
+    public void displayPlanetas(Planeta planeta){
+        PVector pos = planeta.getPos();
+        //int raio = planeta.getRaio();
+
+        pushMatrix();
+        translate(pos.x, pos.y);
+        fill(200);
+        ellipse(0, 0, 20*2, 20*2);
+        stroke(255, 0, 0);
+        popMatrix();
+
+        planeta.update();
+    }
+
     public void run(){
 		String[] argum = {"MenuAndPlay"};
-		MenuAndPlay  mp = new MenuAndPlay();
+		MenuAndPlay  mp = new MenuAndPlay(connectionManager);
 		PApplet.runSketch(argum, mp);
 	}
 

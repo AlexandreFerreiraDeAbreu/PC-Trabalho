@@ -1,18 +1,18 @@
 import processing.core.PVector;
 
-class Jogador{
+public class Jogador{
     private PVector pos; 
     private PVector vel = new PVector(0, 0);
     private float angulo = 0;  
-    private float maxCombustivel = 100;
+    private int maxCombustivel = 100;
     private float combustivel = maxCombustivel;
     private boolean movimento = false;
     private boolean up = false;
     private boolean left = false;
     private boolean right = false;
 
-    public Jogador(PVector pos){
-        this.pos = pos;
+    public Jogador(float posX, float posY){
+        this.pos = new PVector(posX, posY);
     }
 
     public PVector getPos(){
@@ -36,19 +36,6 @@ class Jogador{
         if (direcao == "up") this.up = false;
         if (direcao == "left") this.left = false;
         if (direcao == "right") this.right = false;
-    }
-
-    public float consomeCombustivel(float valor){
-        this.combustivel -= valor;
-        return this.combustivel;
-    }
-
-    public void emMovimento(){
-        this.movimento = true;
-    }
-
-    public void parou(){
-        this.movimento = false;
     }
 
     public void movePlayer(){
@@ -75,39 +62,5 @@ class Jogador{
         }
 
         movimento = false;
-
-
     }
-
-    //pos = new PVector(width / 2, height / 2);     iniciar a posição e velocidade?
-
-    /*
-    void keyReleased() {
-        if (key == CODED) {
-            if (keyCode==UP)
-                up=false;
-                movimento=false;
-            if (keyCode==LEFT){
-                left=false;
-            }
-            if (keyCode==RIGHT)
-                right=false;
-        }
-    }
-
-    // Movimenta o jogador 
-    void keyPressed() {
-        if (key == CODED) {
-            if (keyCode == LEFT) {
-                //angulo -= 0.05;
-                left=true;
-            } else if (keyCode == RIGHT) {
-                //angulo += 0.05;
-                right=true;
-            } else if (keyCode == UP) {
-                up=true;
-                
-            }
-        }
-    }*/
 }
